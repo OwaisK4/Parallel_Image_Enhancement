@@ -2,29 +2,34 @@
 #include <iostream>
 #include <string>
 
+struct Pixel {
+    int red, green, blue;
+};
 struct PPMObject {
     std::string magicNum;
     int width, height, maxColVal;
-    char *m_Ptr;
+    Pixel *pixels;
 };
 
-std::istream &operator>>(std::istream &inputStream, PPMObject &other) {
-    inputStream >> other.magicNum;
-    inputStream >> other.width >> other.height >> other.maxColVal;
-    inputStream.get(); // skip the trailing white space
-    size_t size = other.width * other.height * 3;
-    other.m_Ptr = new char[size];
-    inputStream.read(other.m_Ptr, size);
+std::istream &operator>>(std::istream &inputStream, PPMObject &image) {
+    inputStream >> image.magicNum;
+    inputStream >> image.width >> image.height >> image.maxColVal;
+    size_t size = image.width * image.height;
+    image.pixels = new Pixel[size];
+    for (int i = 0; i < size; i++) {
+        inputStream >> image.pixels[i].red >> image.pixels[i].green >> image.pixels[i].blue;
+    }
     return inputStream;
 }
 
-std::ostream &operator<<(std::ostream &outputStream, const PPMObject &other) {
-    outputStream << "P6"
+std::ostream &operator<<(std::ostream &outputStream, const PPMObject &image) {
+    outputStream << "P3"
                  << "\n"
-                 << other.width << " "
-                 << other.height << "\n"
-                 << other.maxColVal << "\n";
-    size_t size = other.width * other.height * 3;
-    outputStream.write(other.m_Ptr, size);
+                 << image.width << " " << image.height << "\n"
+                 << image.maxColVal << "\n";
+    size_t size = image.width * image.height;
+    for (int i = 0; i < size; i++) {
+        outputStream << image.pixels[i].red << " " << image.pixels[i].green << " " << image.pixels[i].blue << " ";
+    }
     return outputStream;
 }
