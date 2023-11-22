@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+// TODO: Calculate image entropy (data loss)
+
 std::vector<std::vector<double>> kernel = {{1, 4, 6, 4, 1},
                                            {4, 16, 24, 16, 4},
                                            {6, 24, 36, 24, 6},
@@ -158,9 +160,6 @@ void HSV_to_RGB(PPMObject &image, std::vector<HSV> &hsv, int threads) {
 
 void BlurImage(PPMObject &image, std::vector<HSV> &hsv, int threads) {
     std::vector<HSV> original(hsv);
-    // for (auto &it : kernel)
-    //     for (auto &jt : it)
-    //         jt = jt / 256;
     double fIntens = 0, curIntens = 0;
 #pragma omp parallel for num_threads(threads) shared(image, hsv, original) private(fIntens, curIntens) collapse(2)
     for (int i = 2; i < image.height - 2; i++) {
