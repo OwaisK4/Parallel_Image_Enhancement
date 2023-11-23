@@ -1,10 +1,14 @@
+#ifndef PPM_UTILS_HPP
+#define PPM_UTILS_HPP
 #include <algorithm>
 #include <cmath>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <omp.h>
 #include <string>
 #include <vector>
+namespace fs = std::filesystem;
 
 // TODO: Calculate image entropy (data loss)
 
@@ -158,8 +162,8 @@ void HSV_to_RGB(PPMObject &image, std::vector<HSV> &hsv, int threads) {
     }
 }
 
-void BlurImage(PPMObject &image, std::vector<HSV> &hsv, int threads) {
-    std::vector<HSV> original(hsv);
+std::vector<HSV> BlurImage(const PPMObject &image, const std::vector<HSV> &original, int threads) {
+    std::vector<HSV> hsv(original);
     double fIntens = 0, curIntens = 0;
 #pragma omp parallel for num_threads(threads) shared(image, hsv, original) private(fIntens, curIntens) collapse(2)
     for (int i = 2; i < image.height - 2; i++) {
@@ -176,6 +180,30 @@ void BlurImage(PPMObject &image, std::vector<HSV> &hsv, int threads) {
             hsv[(i * image.width) + j].value = fIntens / 256.0;
         }
     }
+    return hsv;
+}
+
+std::vector<HSV> GenerateImageMask(const std::vector<HSV> &image, const std::vector<HSV> &blurred_image, int threads) {
+    std::vector<HSV> mask(image);
+    int n = image.size();
+#pragma omp parallel for num_threads(threads) shared(image, blurred_image, mask)
+    for (int i = 0; i < n; i++) {
+        // mask[i].value = image[i].value - blurred_image[i].value;
+        mask[i].value = image[i].value + (image[i].value - blurred_image[i].value);
+        mask[i].value = std::max(0.0, std::min(255.0, mask[i].value));
+    }
+    return mask;
+}
+std::vector<HSV> SharpenImage(const std::vector<HSV> &image, const std::vector<HSV> &image_mask, int threads) {
+    int n = image.size();
+    std::vector<HSV> sharpened(image);
+    double m = 1.0;
+#pragma omp parallel for num_threads(threads) shared(image, image_mask, sharpened) firstprivate(m)
+    for (int i = 0; i < n; i++) {
+        sharpened[i].value = image[i].value + (m * image_mask[i].value);
+        sharpened[i].value = std::max(0.0, std::min(255.0, sharpened[i].value));
+    }
+    return sharpened;
 }
 
 PPMObject RGB_to_Grayscale(const PPMObject &RGB_image, int threads) {
@@ -221,3 +249,57 @@ PPMObject RGB_Extract_Blue(const PPMObject &RGB_image, int threads) {
     }
     return blue_image;
 }
+
+void convert_to_ppm(std::string file) {
+    if (!fs::exists(file)) {
+        std::cout << "Input image doesn't exist. Exiting.\n";
+        return;
+    }
+    int index = file.find(".", 0);
+    std::string basename = file.substr(0, index);
+    std::string command = "convert '" + file + "' -compress none '" + basename + ".ppm'";
+    system(command.c_str());
+    if (file.find("ppm", 0) == file.npos)
+        remove(file.c_str());
+}
+
+void convert_all_to_ppm(std::vector<std::string> files, int threads) {
+#pragma omp parallel for num_threads(threads)
+    for (int i = 0; i < files.size(); i++) {
+        std::string file = files[i];
+        int index = file.find(".", 0);
+        std::string basename = file.substr(0, index);
+        std::string command = "convert '" + file + "' -compress none '" + basename + ".ppm'";
+        system(command.c_str());
+        if (file.find("ppm", 0) == file.npos)
+            remove(file.c_str());
+    }
+}
+
+void convert_from_ppm(std::string file) {
+    if (!fs::exists(file)) {
+        std::cout << "Input image doesn't exist. Exiting.\n";
+        return;
+    }
+    int index = file.find(".", 0);
+    std::string basename = file.substr(0, index);
+    std::string command = "convert '" + file + "' '" + basename + ".jpg'";
+    system(command.c_str());
+    if (file.find("ppm", 0) != file.npos)
+        remove(file.c_str());
+}
+
+void convert_all_from_ppm(std::vector<std::string> files, int threads) {
+#pragma omp parallel for num_threads(threads)
+    for (int i = 0; i < files.size(); i++) {
+        std::string file = files[i];
+        int index = file.find(".", 0);
+        std::string basename = file.substr(0, index);
+        std::string command = "convert '" + file + "' '" + basename + ".jpg'";
+        system(command.c_str());
+        if (file.find("ppm", 0) != file.npos)
+            remove(file.c_str());
+    }
+}
+
+#endif

@@ -2,3 +2,5 @@ Images/*
 Backup_Images/*
 .vscode/*
 *.ppm
+openmp_convert_images
+testing_ppm
