@@ -81,12 +81,14 @@ std::vector<HSV> RGB_to_HSV(const PPMObject &RGB_image, int threads) {
         double scaled_red = RGB_image.pixels[i].red / 255.0;
         double scaled_green = RGB_image.pixels[i].green / 255.0;
         double scaled_blue = RGB_image.pixels[i].blue / 255.0;
-        double c_max = std::max({scaled_red, scaled_green, scaled_blue});
-        double c_min = std::min({scaled_red, scaled_green, scaled_blue});
+        double c_max = std::fmax(scaled_red, std::fmax(scaled_green, scaled_blue));
+        double c_min = std::fmin(scaled_red, std::fmin(scaled_green, scaled_blue));
         double delta = c_max - c_min;
         double h, s, v;
-        if (delta == 0) {
+        if (delta <= 0.0001) {
             h = 0.0;
+            s = 0.0;
+            v = c_max;
         } else {
             if (c_max == scaled_red) {
                 h = 60.0 * ((scaled_green - scaled_blue) / delta);
@@ -98,16 +100,15 @@ std::vector<HSV> RGB_to_HSV(const PPMObject &RGB_image, int threads) {
             h = std::fmod(h, 360.0);
             if (h < 0.0)
                 h = h + 360.0;
-            // h = h / 2;
             if (c_max == 0)
-                s = 0;
+                s = 0.0;
             else
-                s = (delta / c_max) * 255.0;
-            v = c_max * 255.0;
-            hsv[i].hue = h;
-            hsv[i].saturation = s;
-            hsv[i].value = v;
+                s = (delta * 255.0) / c_max;
+            v = c_max;
         }
+        hsv[i].hue = h;
+        hsv[i].saturation = s;
+        hsv[i].value = v * 255.0;
     }
     return hsv;
 }
@@ -188,7 +189,6 @@ std::vector<HSV> GenerateImageMask(const std::vector<HSV> &image, const std::vec
     int n = image.size();
 #pragma omp parallel for num_threads(threads) shared(image, blurred_image, mask)
     for (int i = 0; i < n; i++) {
-        // mask[i].value = image[i].value - blurred_image[i].value;
         mask[i].value = image[i].value + (image[i].value - blurred_image[i].value);
         mask[i].value = std::max(0.0, std::min(255.0, mask[i].value));
     }
@@ -204,6 +204,33 @@ std::vector<HSV> SharpenImage(const std::vector<HSV> &image, const std::vector<H
         sharpened[i].value = std::max(0.0, std::min(255.0, sharpened[i].value));
     }
     return sharpened;
+}
+std::vector<HSV> HistogramEqualize(const std::vector<HSV> &image, int width, int height, int threads) {
+    std::vector<HSV> equalized(image);
+    std::vector<int> histogram(256, 0);
+#pragma omp parallel for num_threads(threads) shared(image, histogram)
+    for (const HSV &pixel : image) {
+        int value = pixel.value;
+        histogram[value]++;
+    }
+    std::vector<int> cdf(256, 0);
+    int sum = 0;
+    for (int i = 0; i < 256; i++) {
+        sum += histogram[i];
+        cdf[i] = sum;
+    }
+
+#pragma omp parallel for num_threads(threads) shared(cdf) firstprivate(width, height)
+    for (int i = 0; i < 256; i++) {
+        cdf[i] = round((cdf[i] * 255.0) / (width * height));
+    }
+
+#pragma omp parallel for num_threads(threads) shared(image, equalized, cdf)
+    for (int i = 0; i < image.size(); i++) {
+        int value = image[i].value;
+        equalized[i].value = cdf[value];
+    }
+    return equalized;
 }
 
 PPMObject RGB_to_Grayscale(const PPMObject &RGB_image, int threads) {
@@ -255,24 +282,26 @@ void convert_to_ppm(std::string file) {
         std::cout << "Input image doesn't exist. Exiting.\n";
         return;
     }
+    if (file.find("ppm", 0) != file.npos)
+        return;
     int index = file.find(".", 0);
     std::string basename = file.substr(0, index);
     std::string command = "convert '" + file + "' -compress none '" + basename + ".ppm'";
     system(command.c_str());
-    if (file.find("ppm", 0) == file.npos)
-        remove(file.c_str());
+    remove(file.c_str());
 }
 
 void convert_all_to_ppm(std::vector<std::string> files, int threads) {
 #pragma omp parallel for num_threads(threads)
     for (int i = 0; i < files.size(); i++) {
         std::string file = files[i];
+        if (file.find("ppm", 0) != file.npos)
+            continue;
         int index = file.find(".", 0);
         std::string basename = file.substr(0, index);
         std::string command = "convert '" + file + "' -compress none '" + basename + ".ppm'";
         system(command.c_str());
-        if (file.find("ppm", 0) == file.npos)
-            remove(file.c_str());
+        remove(file.c_str());
     }
 }
 
@@ -281,25 +310,38 @@ void convert_from_ppm(std::string file) {
         std::cout << "Input image doesn't exist. Exiting.\n";
         return;
     }
+    if (file.find("ppm", 0) == file.npos)
+        return;
     int index = file.find(".", 0);
     std::string basename = file.substr(0, index);
     std::string command = "convert '" + file + "' '" + basename + ".jpg'";
     system(command.c_str());
-    if (file.find("ppm", 0) != file.npos)
-        remove(file.c_str());
+    remove(file.c_str());
 }
 
 void convert_all_from_ppm(std::vector<std::string> files, int threads) {
 #pragma omp parallel for num_threads(threads)
     for (int i = 0; i < files.size(); i++) {
         std::string file = files[i];
+        if (file.find("ppm", 0) == file.npos)
+            continue;
         int index = file.find(".", 0);
         std::string basename = file.substr(0, index);
         std::string command = "convert '" + file + "' '" + basename + ".jpg'";
         system(command.c_str());
-        if (file.find("ppm", 0) != file.npos)
-            remove(file.c_str());
+        remove(file.c_str());
     }
 }
 
 #endif
+
+// if (scaled_red == c_max) {
+//     h = (scaled_green - scaled_blue) / delta;
+//     if (h < 0.0)
+//         h += 6.0;
+// } else if (scaled_green == c_max) {
+//     h = 2.0 + (scaled_blue - scaled_red) / delta;
+// } else {
+//     h = 4.0 + (scaled_red - scaled_green) / delta;
+// }
+// h /= 6.0;

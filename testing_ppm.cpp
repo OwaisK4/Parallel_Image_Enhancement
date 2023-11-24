@@ -25,8 +25,8 @@ int main() {
     }
     cout << "Total no. of files: " << files.size() << "\n";
     int threads = 8;
-    cout << "Enter no. of threads to use for conversion: ";
-    cin >> threads;
+    // cout << "Enter no. of threads to use for conversion: ";
+    // cin >> threads;
     threads = max(1, min(8, threads));
 
     global_start = omp_get_wtime();
@@ -38,23 +38,35 @@ int main() {
             cout << "Input file doesn't exist. Exiting.\n";
             return 0;
         }
-        string enhanced_image_filename = filename.substr(0, filename.size() - 4) + "_enhanced_local.ppm";
-        fstream enhancedoutfile(enhanced_image_filename, ios::out);
+        string local_enhanced_image_filename = filename.substr(0, filename.size() - 4) + "_enhanced_local.ppm";
+        string global_enhanced_image_filename = filename.substr(0, filename.size() - 4) + "_enhanced_global.ppm";
+        string total_enhanced_image_filename = filename.substr(0, filename.size() - 4) + "_enhanced_total.ppm";
+        fstream localenhancedoutfile(local_enhanced_image_filename, ios::out);
+        fstream globalenhancedoutfile(global_enhanced_image_filename, ios::out);
+        fstream totalenhancedoutfile(total_enhanced_image_filename, ios::out);
         string shortened_filename = filename.substr(filename.rfind("/") + 1, filename.size() - filename.rfind("/"));
 
         IO_start = omp_get_wtime(); // For IO time
         PPMObject ppm;
         infile >> ppm;
+        PPMObject ppm2(ppm);
+        PPMObject ppm3(ppm);
         cout << "Completed reading from file: " << shortened_filename << "\n";
         IO_end = omp_get_wtime();                // For IO time
         IO_time = IO_time + (IO_end - IO_start); // For IO time
 
         start_time = omp_get_wtime();
         vector<HSV> hsv = RGB_to_HSV(ppm, threads);
-        vector<HSV> blurred_hsv = BlurImage(ppm, hsv, threads);
-        vector<HSV> image_mask = GenerateImageMask(hsv, blurred_hsv, threads);
-        vector<HSV> sharpened = SharpenImage(hsv, image_mask, threads);
+        vector<HSV> sharpened = BlurImage(ppm, hsv, threads);
+        sharpened = GenerateImageMask(hsv, sharpened, threads);
+        sharpened = SharpenImage(hsv, sharpened, threads);
         HSV_to_RGB(ppm, sharpened, threads);
+
+        vector<HSV> equalized = HistogramEqualize(hsv, ppm.width, ppm.height, threads);
+        HSV_to_RGB(ppm2, equalized, threads);
+
+        vector<HSV> enhanced = HistogramEqualize(sharpened, ppm.width, ppm.height, threads);
+        HSV_to_RGB(ppm3, enhanced, threads);
 
         end_time = omp_get_wtime();
         elapsed = end_time - start_time;
@@ -65,7 +77,15 @@ int main() {
         {
 #pragma omp section
             {
-                enhancedoutfile << ppm;
+                localenhancedoutfile << ppm;
+            }
+#pragma omp section
+            {
+                globalenhancedoutfile << ppm2;
+            }
+#pragma omp section
+            {
+                totalenhancedoutfile << ppm3;
             }
         }
         cout << "Completed writing to file.\n";
@@ -73,7 +93,13 @@ int main() {
         IO_time = IO_time + (IO_end - IO_start); // For IO time
 
         infile.close();
-        enhancedoutfile.close();
+        localenhancedoutfile.close();
+        globalenhancedoutfile.close();
+        totalenhancedoutfile.close();
+
+        convert_from_ppm(local_enhanced_image_filename);
+        convert_from_ppm(global_enhanced_image_filename);
+        convert_from_ppm(total_enhanced_image_filename);
     }
 
     global_end = omp_get_wtime();
