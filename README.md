@@ -9,11 +9,11 @@
   <ol>
     <li>
       <a href="#about-the-project">About The Project</a>
-      <a href="#examples">Examples</a>
       <ul>
         <li><a href="#built-with">Built With</a></li>
       </ul>
     </li>
+    <li><a href="#examples">Examples</a></li>
     <li>
       <a href="#getting-started">Getting Started</a>
       <ul>
