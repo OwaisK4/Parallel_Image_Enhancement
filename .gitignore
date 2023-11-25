@@ -4,3 +4,4 @@ Backup_Images/*
 *.ppm
 openmp_convert_images
 testing_ppm
+visualization.py

@@ -215,6 +215,7 @@ std::vector<HSV> HistogramEqualize(const std::vector<HSV> &image, int width, int
     }
     std::vector<int> cdf(256, 0);
     int sum = 0;
+    // #pragma omp parallel for num_threads(threads) shared(cdf, histogram) reduction(+ : sum)
     for (int i = 0; i < 256; i++) {
         sum += histogram[i];
         cdf[i] = sum;

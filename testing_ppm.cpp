@@ -11,11 +11,16 @@ namespace fs = filesystem;
 
 string dirpath = "/home/owaisk4/Win_backup/FAST NU assignments/Parallel and Distributed Computing/Project/Image Processing/Code/Images/";
 vector<string> files;
-double start_time, end_time, elapsed, total;     // For calculating local benchmarks
-double global_start, global_end, global_elapsed; // For calculating global benchmarks
-double IO_start, IO_end, IO_time = 0;            // Extra time taken by IO
+double start_time, end_time, elapsed, total = 0; // For calculating local benchmarks
+// double global_start, global_end, global_elapsed; // For calculating global benchmarks
+// double IO_start, IO_end, IO_time = 0;            // Extra time taken by IO
 
-int main() {
+int main(int argc, char **argv) {
+    if (argc < 2) {
+        cout << "Missing parameter \"threads\"\n";
+        cout << "Usage: " << argv[0] << " threads\n";
+        return 0;
+    }
     for (const auto &entry : fs::directory_iterator(dirpath)) {
         if (entry.is_directory())
             continue;
@@ -24,12 +29,15 @@ int main() {
             files.push_back(file);
     }
     cout << "Total no. of files: " << files.size() << "\n";
-    int threads = 8;
+    int threads = atoi(argv[1]);
+    // cout << threads << "\n";
+    // return 0;
+    // int threads = 8;
     // cout << "Enter no. of threads to use for conversion: ";
     // cin >> threads;
     threads = max(1, min(8, threads));
 
-    global_start = omp_get_wtime();
+    // global_start = omp_get_wtime();
     for (string filename : files) {
         if (filename.find("ppm", 0) == filename.npos)
             continue;
@@ -46,14 +54,14 @@ int main() {
         fstream totalenhancedoutfile(total_enhanced_image_filename, ios::out);
         string shortened_filename = filename.substr(filename.rfind("/") + 1, filename.size() - filename.rfind("/"));
 
-        IO_start = omp_get_wtime(); // For IO time
+        // IO_start = omp_get_wtime(); // For IO time
         PPMObject ppm;
         infile >> ppm;
         PPMObject ppm2(ppm);
         PPMObject ppm3(ppm);
         cout << "Completed reading from file: " << shortened_filename << "\n";
-        IO_end = omp_get_wtime();                // For IO time
-        IO_time = IO_time + (IO_end - IO_start); // For IO time
+        // IO_end = omp_get_wtime();                // For IO time
+        // IO_time = IO_time + (IO_end - IO_start); // For IO time
 
         start_time = omp_get_wtime();
         vector<HSV> hsv = RGB_to_HSV(ppm, threads);
@@ -71,8 +79,9 @@ int main() {
         end_time = omp_get_wtime();
         elapsed = end_time - start_time;
         cout << "Time taken = " << elapsed << " seconds.\n";
+        total += elapsed;
 
-        IO_start = omp_get_wtime(); // For IO time
+        // IO_start = omp_get_wtime(); // For IO time
 #pragma omp parallel sections
         {
 #pragma omp section
@@ -89,8 +98,8 @@ int main() {
             }
         }
         cout << "Completed writing to file.\n";
-        IO_end = omp_get_wtime();                // For IO time
-        IO_time = IO_time + (IO_end - IO_start); // For IO time
+        // IO_end = omp_get_wtime();                // For IO time
+        // IO_time = IO_time + (IO_end - IO_start); // For IO time
 
         infile.close();
         localenhancedoutfile.close();
@@ -102,12 +111,12 @@ int main() {
         convert_from_ppm(total_enhanced_image_filename);
     }
 
-    global_end = omp_get_wtime();
-    global_elapsed = global_end - global_start - IO_time;
-    cout << "Total time taken = " << global_elapsed << " seconds.\n";
+    // global_end = omp_get_wtime();
+    // global_elapsed = (global_end - global_start) - IO_time;
+    cout << "Total time taken = " << total << " seconds.\n";
 
     fstream csv(dirpath + "times.csv", ios::app);
-    csv << threads << "," << global_elapsed << "\n";
+    csv << threads << "," << total << "\n";
     csv.close();
 
     return 0;
