@@ -13,8 +13,10 @@
         <li><a href="#built-with">Built With</a></li>
       </ul>
     </li>
-    <li><a href="#examples">Introduction</a></li>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#algorithm">Algorithm</a></li>
     <li><a href="#examples">Examples</a></li>
+    <li><a href="#benchmarks">Benchmarks</a></li>
     <li>
       <a href="#getting-started">Getting Started</a>
       <ul>
@@ -163,12 +165,18 @@ To get a local copy up and running follow these simple example steps.
    g++ openmp_convert_images.cpp -fopenmp -o openmp_convert_images
    ```
 3. Run the resulting executable and select the "Convert to ppm" option to convert all images inside target dir_path to PPM3 format.
+   ```sh
+   ./openmp_convert_images
+   ```
 
 4. Change the dir_path inside the testing_ppm.cpp file and compile it using g++.
    ```sh
    g++ testing_ppm.cpp -fopenmp -o testing_ppm
    ```
-5. Run the resulting executable and wait for its completion. After it completes, each ppm file will have 3 matching enhanced images inside the dir_path folder.
+5. Run the resulting executable, with no. of threads passed as argument, and wait for its completion. After it completes, each ppm file will have 3 matching enhanced images inside the dir_path folder.
+   ```sh
+   ./testing_ppm 8
+   ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
