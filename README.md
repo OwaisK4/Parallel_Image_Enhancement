@@ -24,6 +24,7 @@
         <li><a href="#installation and usage">Installation</a></li>
       </ul>
     </li>
+    <li><a href="#acknowledgements">Acknowledgements</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
   </ol>
@@ -180,7 +181,11 @@ To get a local copy up and running follow these simple example steps.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+## Acknowledgements
 
+1. Hangün, Batuhan and Bayar, Salih, [An Openmp-Based Parallel Implementation of Image Enhancement Technique for Dark Images](https://dx.doi.org/10.2139/ssrn.4493946)
+
+2. Chernov, Vladimir & Alander, Jarmo & Bochko, Vladimir. (2015). [Integer-based accurate conversion between RGB and HSV color spaces. Computers & Electrical Engineering.](https://doi.org/10.1016/j.compeleceng.2015.08.005)
 
 <!-- LICENSE -->
 ## License
