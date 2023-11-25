@@ -9,6 +9,7 @@
   <ol>
     <li>
       <a href="#about-the-project">About The Project</a>
+      <a href="#examples">Examples</a>
       <ul>
         <li><a href="#built-with">Built With</a></li>
       </ul>
@@ -31,6 +32,23 @@
 ## About The Project
 
 Parallelized image enhancement code written in C++ and OpenMP 5.0. Uses ImageMagick to convert jpg/png images to PPM format and then applies image enhancement techniques including Gaussian filtering and histogram equalization in order to sharpen low-quality images and increase contrast for dark images.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+## Examples
+
+| Original image | Enhanced image |
+| ---------------------- | ---------------------- |
+| ![Dark Image](Sample/dark_image.jpg) | ![Dark Image Enhanced](Sample/dark_image_enhanced_total.jpg) |
+
+| Original image | Enhanced image |
+| ---------------------- | ---------------------- |
+| ![Jase Bloor](Sample/jase-bloor.jpg) | ![Jase Bloor Enhanced](Sample/jase-bloor_enhanced_total.jpg) |
+
+| Original image | Enhanced image |
+| ---------------------- | ---------------------- |
+| ![X-ray Shoulder](Sample/x_ray_shoulder.jpg) | ![X-ray Shoulder Enhanced](Sample/x_ray_shoulder_enhanced_global.jpg) |
+
 
 ### Built With
 <!-- <br> -->
