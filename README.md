@@ -103,7 +103,7 @@ Sample 2 (246.8 MB)
 <tr>
 <td>
 
-| Threads | Time |
+| Threads | Time (in seconds) |
 | ------- | ------- |
 | 1 | 17.78424 |
 | 2 | 4.24503 |
@@ -117,7 +117,7 @@ Sample 2 (246.8 MB)
 </td>
 <td>
 
-| Threads | Time |
+| Threads | Time (in seconds) |
 | ------- | ------- |
 | 1 | 29.1509 |
 | 2 | 11.8906 |
