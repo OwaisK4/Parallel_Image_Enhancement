@@ -1,7 +1,14 @@
 <a name="readme-top"></a>
 
+# Polaris (Image Enhancement Program)
 <!-- PROJECT LOGO -->
-# Parallel Image Enhancement
+<!-- <br /> -->
+<div align="center">
+<!-- ![Convolutional layer](sample/qiskit.png) -->
+<img src="Sample/logo.jpg" alt="Logo" width="300" height="300">
+</div>
+<br />
+
 
 <!-- TABLE OF CONTENTS -->
 <details>
@@ -35,7 +42,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-Parallelized image enhancement code written in C++ and OpenMP 5.0. Uses ImageMagick to convert jpg/png images to PPM format and then applies image enhancement techniques including Gaussian filtering and histogram equalization in order to sharpen low-quality images and increase contrast for dark images.
+Polaris is a parallelized image enhancement program written in C++ and OpenMP 5.0. It uses ImageMagick to convert jpg/png images to PPM format and then applies image enhancement techniques including Gaussian filtering and histogram equalization in order to sharpen low-quality images and increase contrast for dark images.
 
 ### Built With
 <!-- <br> -->

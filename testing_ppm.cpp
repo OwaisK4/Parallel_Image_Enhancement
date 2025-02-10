@@ -9,7 +9,7 @@
 using namespace std;
 namespace fs = filesystem;
 
-string dirpath = "/home/owaisk4/Win_backup/FAST NU assignments/Parallel and Distributed Computing/Project/Image Processing/Code/Images/";
+string dirpath = "/home/owaisk4/Win_backup/FAST NU assignments/5th-Semester-FAST-BS-CS/Parallel and Distributed Computing/Project/Image Processing/Code/Images/";
 vector<string> files;
 double start_time, end_time, elapsed, total = 0; // For calculating local benchmarks
 // double global_start, global_end, global_elapsed; // For calculating global benchmarks

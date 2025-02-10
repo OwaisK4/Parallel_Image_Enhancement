@@ -7,7 +7,7 @@
 namespace fs = std::filesystem;
 using namespace std;
 
-string path = "/home/owaisk4/Win_backup/FAST NU assignments/Parallel and Distributed Computing/Project/Image Processing/Code/Images/";
+string path = "/home/owaisk4/Win_backup/FAST NU assignments/5th-Semester-FAST-BS-CS/Parallel and Distributed Computing/Project/Image Processing/Code/Images/";
 vector<string> files;                 // Contains all image filenames
 double start_time, end_time, elapsed; // For calculating benchmarks
 

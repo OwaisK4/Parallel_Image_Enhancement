@@ -10,8 +10,6 @@
 #include <vector>
 namespace fs = std::filesystem;
 
-// TODO: Calculate image entropy (data loss)
-
 std::vector<std::vector<double>> kernel = {{1, 4, 6, 4, 1},
                                            {4, 16, 24, 16, 4},
                                            {6, 24, 36, 24, 6},
